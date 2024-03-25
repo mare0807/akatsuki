@@ -13,13 +13,25 @@ class PostCardList extends StatefulWidget {
 }
 
 class _PostCardListState extends State<PostCardList> {
+  final TextEditingController textController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
+    textController.addListener(() {
+      final String text = textController.text;
+      textController.value = textController.value.copyWith(
+        text: text,
+        selection:
+        TextSelection(baseOffset: text.length, extentOffset: text.length),
+        composing: TextRange.empty,
+      );
+    });
   }
 
   @override
   void dispose() {
+    textController.dispose();
     super.dispose();
   }
 
@@ -39,18 +51,40 @@ class _PostCardListState extends State<PostCardList> {
         )
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: addItem,
+        onPressed: openDialog,
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void addItem() {
-    setState(() {
-      cardList.add(const PostCard(
-        title: 'title',
-        message: 'message',
-      ));
+  void openDialog() {
+    showDialog(context: context, builder: (context) {
+      return Dialog(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: textController,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                minLines: 10,
+                maxLines: 20,
+                keyboardType: TextInputType.multiline,
+              ),
+              IconButton(onPressed: () {
+                setState(() {
+                  cardList.add(PostCard(
+                      title: 'title',
+                      message: textController.text
+                  ));
+                });
+                textController.clear();
+                Navigator.pop(context);
+              }, icon: const Icon(Icons.post_add),
+              ),
+            ],
+          )
+        ),
+      );
     });
   }
 }
